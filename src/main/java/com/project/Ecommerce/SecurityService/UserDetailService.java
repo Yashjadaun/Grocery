@@ -20,7 +20,7 @@ public class UserDetailService implements UserDetailsService {
 
     @Override
      @Transactional
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+    public UserDetail loadUserByUsername(String username) throws UsernameNotFoundException {
 
 
          User user = userRepository.findByUserName(username)
