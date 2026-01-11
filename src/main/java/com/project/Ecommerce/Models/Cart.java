@@ -23,7 +23,7 @@ public class Cart {
     @JoinColumn(name="userId")
     private User user;
 
-    @OneToMany(mappedBy = "cart", cascade = {CascadeType.PERSIST,CascadeType.MERGE})
+    @OneToMany(mappedBy = "cart", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<CartItems> Items;
 
     private Double totalprice;

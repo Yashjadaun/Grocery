@@ -16,11 +16,9 @@ public class CartItemDTo {
     private Long cartItemsId;
 
 
-    private CartDTO cart;
+    private Long product_id;
 
-    @ManyToOne
-    @JoinColumn(name = "product_id")
-    private ProductDTO product_id;
+    private String productName;
 
     private Integer quantity;
     private double discount;
