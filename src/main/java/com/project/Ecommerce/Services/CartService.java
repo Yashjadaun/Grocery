@@ -11,6 +11,7 @@ import com.project.Ecommerce.Repo.CartItemsRepo;
 import com.project.Ecommerce.Repo.CartRepo;
 import com.project.Ecommerce.Repo.Product_Repo;
 import com.project.Ecommerce.utils.Authuils;
+import jakarta.transaction.Transactional;
 import org.modelmapper.ModelMapper;
 
 
@@ -47,7 +48,7 @@ public class CartService {
     @Autowired
     private Authuils authUtils;
 
-
+    @Transactional
     public ResponseEntity<?> addProducttocart(Long productID, Integer quantity) {
 
         // 1. Find existing cart or create one
@@ -102,7 +103,7 @@ public class CartService {
         );
         //System.out.println("Caritems me abb kitne h "+cartItems.getQuantity()+" product me abb kitne h "+product.getQuantity());
 
-        cart.setTotalprice(cart.getTotalprice()+(product.getSpecialPrice()*cartItems.getQuantity()));
+        cart.setTotalprice((product.getSpecialPrice()*cartItems.getQuantity()));
 
     cartRepo.save(cart);
 
@@ -205,5 +206,68 @@ public class CartService {
         cartDTO.setItems(itemDtos);
 
         return cartDTO;
+    }
+
+    @Transactional
+    public ResponseEntity<?> updatequantity(Long productID, int quantity) {
+        Cart cart=cartRepo.findByUser_Email(authUtils.getCurrentUserEmail());
+        Product product=productRepo.findById(productID).orElseThrow(()->new RuntimeException("No product Found"));
+
+
+        if(quantity==0){
+            throw new ApiExpetion("Product "+quantity+" is zero");
+        }
+
+        if(product.getQuantity()<quantity){
+            throw new ApiExpetion("Product "+quantity+" too large");
+        }
+
+
+        CartItems cartitems=cartItemsRepo.findCartItemsByCartIdandproductId(productID,cart.getCartid());
+
+        if(cartitems==null){
+            throw new ApiExpetion("Product "+product.getProductName()+" Is not present in cart");
+        }
+
+//        cartitems.setQuantity(cartitems.getQuantity()+quantity);
+        if(cartitems.getQuantity()==1 && quantity==-1){
+            return deletefromcart(cart.getCartid(),productID);
+        }
+        else {
+            cartitems.setQuantity(cartitems.getQuantity()+quantity);
+            cartItemsRepo.save(cartitems);
+
+            cart.setTotalprice(cart.getTotalprice() + (product.getSpecialPrice() * quantity));
+
+            product.setQuantity(product.getQuantity() - quantity);
+            productRepo.save(product);
+
+            return ResponseEntity.ok(convertCartToDto(cartRepo.save(cart)));
+        }
+    }
+
+    @Transactional
+    public ResponseEntity<?> deletefromcart(Long cartId, Long productId) {
+        Product product=productRepo.findById(productId).orElseThrow(()->new RuntimeException("No product Found"));
+        CartItems cartitems=cartItemsRepo.findCartItemsByCartIdandproductId(productId,cartId);
+
+        if(cartitems==null){
+            throw new ApiExpetion("Product "+product.getProductName()+" Is not present in cart");
+
+        }
+        Cart cart=cartRepo.findById(cartId).orElseThrow(()->new RuntimeException("Cart Not Found"));
+
+        cart.setTotalprice(Math.max(0,cart.getTotalprice()-(cartitems.getProductPrice()*cartitems.getQuantity())));
+        product.setQuantity(product.getQuantity()+cartitems.getQuantity());
+
+        cart.getItems().remove(cartitems);
+        cartItemsRepo.delete(cartitems);
+
+        cartRepo.save(cart);
+        productRepo.save(product);
+
+
+        return ResponseEntity.ok(convertCartToDto(cart));
+
     }
 }

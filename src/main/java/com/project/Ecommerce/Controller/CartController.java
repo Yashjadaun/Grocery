@@ -33,4 +33,16 @@ public class CartController {
     public ResponseEntity<?>getUserCart(){
       return cartService.findUserCart();
     }
+
+    @PutMapping("/carts/products/{productID}/quantity/{operation}")
+    public ResponseEntity<?>updatequantity(@PathVariable Long productID,@PathVariable String operation){
+        return cartService.updatequantity(productID,operation.equalsIgnoreCase("delete")?-1:1);
+    }
+
+
+    @DeleteMapping("/carts/{cartId}/product/{productsId}")
+    public ResponseEntity<?>deletefromcart(@PathVariable Long cartId,@PathVariable Long productsId){
+        return cartService.deletefromcart(cartId,productsId);
+    }
+
 }
