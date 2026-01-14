@@ -103,7 +103,7 @@ public class CartService {
         );
         //System.out.println("Caritems me abb kitne h "+cartItems.getQuantity()+" product me abb kitne h "+product.getQuantity());
 
-        cart.setTotalprice((product.getSpecialPrice()*cartItems.getQuantity()));
+        cart.setTotalprice(cart.getTotalprice()+(product.getSpecialPrice()*quantity));
 
     cartRepo.save(cart);
 
@@ -268,6 +268,33 @@ public class CartService {
 
 
         return ResponseEntity.ok(convertCartToDto(cart));
+
+    }
+
+    public void updateInProduct(Product product) {
+        List<Cart>cartlist= cartRepo.findCartsByProductId(product.getProductId());
+
+
+        for(Cart cart: cartlist){
+              CartItems cartitems =cartItemsRepo.findCartItemsByCartIdandproductId(cart.getCartid(),product.getProductId());
+              cart.setTotalprice(cart.getTotalprice()-(cartitems.getQuantity()*cartitems.getProductPrice()));
+              cartitems.setProductPrice(product.getSpecialPrice());
+              cart.setTotalprice(cart.getTotalprice()+(cartitems.getQuantity()*cartitems.getProductPrice()));
+              cartItemsRepo.save(cartitems);
+              cartRepo.save(cart);
+        }
+    }
+
+    public void removeproduct(Product product) {
+        List<Cart>cartlist= cartRepo.findCartsByProductId(product.getProductId());
+
+        for(Cart cart: cartlist){
+            CartItems cartitems =cartItemsRepo.findCartItemsByCartIdandproductId(product.getProductId(),cart.getCartid());
+
+            cart.setTotalprice(cart.getTotalprice()-(cartitems.getQuantity()*cartitems.getProductPrice()));
+            cartItemsRepo.delete(cartitems);
+            cartRepo.save(cart);
+        }
 
     }
 }

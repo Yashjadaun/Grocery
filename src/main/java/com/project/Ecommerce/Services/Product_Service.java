@@ -7,6 +7,7 @@ import com.project.Ecommerce.Models.Category;
 import com.project.Ecommerce.Models.Product;
 import com.project.Ecommerce.Repo.Category_Repo;
 import com.project.Ecommerce.Repo.Product_Repo;
+import jakarta.transaction.Transactional;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -40,6 +41,9 @@ public class Product_Service {
 
     @Value("${project.image}")
     private String uploadDir;
+
+    @Autowired
+    private CartService carservice;
 
     public ResponseEntity<?> addproduct(ProductDTO productDTO, long id) {
 
@@ -149,6 +153,7 @@ public class Product_Service {
         return new ResponseEntity<>(p,HttpStatus.OK);
     }
 
+    @Transactional
     public ResponseEntity<ProductDTO> updateProduct(ProductDTO productdto, Long productId) {
         Product p=product_repo.findById(productId)
                 .orElseThrow(() -> new RuntimeException("Product not found with ID: " + productId));
@@ -163,13 +168,18 @@ public class Product_Service {
 
         Product Saveproduct=product_repo.save(p);
 
+//        update in cart
+        carservice.updateInProduct(product);
+
         return new ResponseEntity<>(moddelmapper.map(Saveproduct, ProductDTO.class),HttpStatus.OK);
     }
 
+    @Transactional
     public ResponseEntity<ProductDTO> delete(Long productId) {
         Product p=product_repo.findById(productId)
                 .orElseThrow(() -> new RuntimeException("Product not found with ID: " + productId));
 
+        carservice.removeproduct(p);
         product_repo.delete(p);
          return new ResponseEntity<>(moddelmapper.map(p, ProductDTO.class),HttpStatus.OK);
     }
