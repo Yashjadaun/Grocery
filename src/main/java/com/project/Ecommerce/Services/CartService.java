@@ -64,7 +64,7 @@ public class CartService {
 
         //3.perform Validation
 
-        if(quantity==0){
+        if(quantity<=0){
             throw new ApiExpetion("Product "+quantity+" is zero");
         }
 
@@ -81,8 +81,9 @@ public class CartService {
         logger.info(
                 "--------- Cartitem me kitne pade h : {}, quantity kitni h {}, Product me kitne pade h :{} ",cartItems.getQuantity(),quantity,product.getQuantity()
         );
-
-        cartItems.setQuantity(cartItems.getQuantity()+quantity);
+        int total=Math.min(product.getQuantity(),cartItems.getQuantity()+quantity);
+        int newadd=total-cartItems.getQuantity();
+        cartItems.setQuantity(total);
         cartItems.setCart(cart);
         cartItems.setProduct(product);
         cartItems.setDiscount(product.getDiscount());
@@ -95,15 +96,16 @@ public class CartService {
 
       //  System.out.println("quantity kitn h "+ quantity+" kitni quantity hui toal "+max+" newadd kitna h "+newadd+" product me kitne the phele  "+product.getQuantity());
 
-        product.setQuantity(product.getQuantity()-quantity);
-        productRepo.save(product);
+      //  product.setQuantity(product.getQuantity()-quantity);
+      //  productRepo.save(product);
         logger.info(
                 "Caritems me abb kitne h {}, product me abb kitne h {}",
                 cartItems.getQuantity(),  product.getQuantity()
         );
         //System.out.println("Caritems me abb kitne h "+cartItems.getQuantity()+" product me abb kitne h "+product.getQuantity());
 
-        cart.setTotalprice(cart.getTotalprice()+(product.getSpecialPrice()*quantity));
+
+        cart.setTotalprice(cart.getTotalprice()+(product.getSpecialPrice()*newadd));
 
     cartRepo.save(cart);
 
@@ -119,6 +121,7 @@ public class CartService {
                   item.getProductPrice()
           )).toList();
 
+        cartItemsList.add(modelmapper.map(cartItems, CartItemDTo.class));
 
         CartDTO cartdto= new CartDTO();
         cartdto.setTotalprice(cart.getTotalprice());
@@ -155,6 +158,7 @@ public class CartService {
                 Cart newcart=new Cart();
                 newcart.setTotalprice(0.0);
                 newcart.setUser(authUtils.getUser());
+                newcart.setItems(new ArrayList<>());
                 return cartRepo.save(newcart);
             }
            return cart;
@@ -239,7 +243,7 @@ public class CartService {
 
             cart.setTotalprice(cart.getTotalprice() + (product.getSpecialPrice() * quantity));
 
-            product.setQuantity(product.getQuantity() - quantity);
+           // product.setQuantity(product.getQuantity() - quantity);
             productRepo.save(product);
 
             return ResponseEntity.ok(convertCartToDto(cartRepo.save(cart)));
@@ -258,7 +262,7 @@ public class CartService {
         Cart cart=cartRepo.findById(cartId).orElseThrow(()->new RuntimeException("Cart Not Found"));
 
         cart.setTotalprice(Math.max(0,cart.getTotalprice()-(cartitems.getProductPrice()*cartitems.getQuantity())));
-        product.setQuantity(product.getQuantity()+cartitems.getQuantity());
+      //  product.setQuantity(product.getQuantity()+cartitems.getQuantity());
 
         cart.getItems().remove(cartitems);
         cartItemsRepo.delete(cartitems);

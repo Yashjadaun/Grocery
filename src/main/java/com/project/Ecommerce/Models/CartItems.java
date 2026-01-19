@@ -24,7 +24,7 @@ public class CartItems {
     private Cart cart;
 
     @ManyToOne
-    @JoinColumn(name = "productId")
+    @JoinColumn(name = "product_id")
     @OnDelete(action = OnDeleteAction.CASCADE)
     private  Product product;
 
