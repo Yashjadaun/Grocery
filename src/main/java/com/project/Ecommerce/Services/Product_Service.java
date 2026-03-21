@@ -42,6 +42,9 @@ public class Product_Service {
     @Value("${project.image}")
     private String uploadDir;
 
+    @Value("${image.base.url}")
+    private String imageurl;
+
     @Autowired
     private CartService carservice;
 
@@ -90,7 +93,11 @@ public class Product_Service {
 
           List<Product> list1=ProductPage.getContent();
           List<ProductDTO>finallist=list1.stream()
-                                    .map(p->moddelmapper.map(p, ProductDTO.class)).toList();
+                                    .map(p->   {
+                                        ProductDTO pdto=moddelmapper.map(p, ProductDTO.class);
+                                        pdto.setImage(makeurl(pdto.getImage()));
+                                        return pdto;
+                                    }).toList();
         ProductResponse p=new ProductResponse();
         p.setContent(finallist);
         p.setPageNumer(ProductPage.getNumber());
@@ -116,7 +123,13 @@ public class Product_Service {
         }
 
         List<ProductDTO>finallist=list1.stream()
-                .map(p->moddelmapper.map(p, ProductDTO.class)).toList();
+                .map(p->
+                        {
+                            ProductDTO pdto=moddelmapper.map(p, ProductDTO.class);
+                            pdto.setImage(makeurl(pdto.getImage()));
+                          return pdto;
+                        }
+                ).toList();
 
 
         ProductResponse p=new ProductResponse();
@@ -129,6 +142,11 @@ public class Product_Service {
         return new ResponseEntity<>(p,HttpStatus.OK);
 
     }
+
+    public String makeurl(String imagename){
+        return imageurl+'/'+imagename;
+    }
+
 
 
     public ResponseEntity<ProductResponse> getproductbykeyword( String keyword,Integer pageNumber, Integer pagesize, String sortby, String sortorder){

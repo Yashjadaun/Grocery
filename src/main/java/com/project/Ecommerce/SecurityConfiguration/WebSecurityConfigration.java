@@ -56,6 +56,7 @@ private AuthTokenFilter tokenFilter;
                          //.requestMatchers("/api/public/**").permitAll()
 //              just for test           .requestMatchers("/api/admin/**").permitAll()
                                 .requestMatchers("/api/**").permitAll()
+                                .requestMatchers("/images/**").permitAll()
                          .anyRequest().authenticated())
                  .addFilterBefore(tokenFilter, UsernamePasswordAuthenticationFilter.class)
                  .build();
