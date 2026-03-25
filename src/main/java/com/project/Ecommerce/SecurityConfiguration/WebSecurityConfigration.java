@@ -53,7 +53,7 @@ private AuthTokenFilter tokenFilter;
                   .authorizeHttpRequests(auth ->
 
                         auth .requestMatchers("/api/auth/**").permitAll()
-                         //.requestMatchers("/api/public/**").permitAll()
+//                         .requestMatchers("/api/public/**").permitAll()
 //              just for test           .requestMatchers("/api/admin/**").permitAll()
                                 .requestMatchers("/api/**").permitAll()
                                 .requestMatchers("/images/**").permitAll()

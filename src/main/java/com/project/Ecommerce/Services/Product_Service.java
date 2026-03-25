@@ -95,6 +95,9 @@ public class Product_Service {
           List<ProductDTO>finallist=list1.stream()
                                     .map(p->   {
                                         ProductDTO pdto=moddelmapper.map(p, ProductDTO.class);
+                                        if (p.getCategory() != null) {
+                                            pdto.setCategoryName(p.getCategory().getCategoryName());
+                                        }
                                         pdto.setImage(makeurl(pdto.getImage()));
                                         return pdto;
                                     }).toList();
